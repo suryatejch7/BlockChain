@@ -1,0 +1,67 @@
+{
+  "name": "@settlemint/solidity-token-erc20-crowdsale",
+  "description": "Smart contract set to build an ERC20 token sale in SettleMint",
+  "version": "8.0.10",
+  "private": false,
+  "license": "FSL-1.1-MIT",
+  "author": {
+    "name": "SettleMint",
+    "email": "support@settlemint.com",
+    "url": "https://settlemint.com"
+  },
+  "homepage": "https://github.com/settlemint/solidity-token-erc20-crowdsale/blob/main/README.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/settlemint/solidity-token-erc20-crowdsale.git"
+  },
+  "bugs": {
+    "url": "https://github.com/settlemint/solidity-token-erc20-crowdsale/issues",
+    "email": "support@settlemint.com"
+  },
+  "keywords": [
+    "solidity",
+    "subgraph",
+    "blockchain-transformation",
+    "erc20",
+    "crowdsale"
+  ],
+  "files": [
+    "/contracts",
+    "/ignition",
+    "/lib",
+    "/subgraph",
+    "/test",
+    "/out",
+    "/artifacts"
+  ],
+  "dependencies": {
+    "@amxx/graphprotocol-utils": "1.2.0",
+    "@graphprotocol/graph-cli": "0.96.0",
+    "@graphprotocol/graph-ts": "0.38.0",
+    "@nomicfoundation/hardhat-foundry": "1.2.0",
+    "@nomicfoundation/hardhat-ignition-viem": "0.15.13",
+    "@nomicfoundation/hardhat-toolbox-viem": "4.1.0",
+    "@nomiclabs/hardhat-solhint": "4.1.0",
+    "@openzeppelin/contracts": "5.4.0",
+    "@openzeppelin/subgraphs": "0.1.8-5",
+    "hardhat": "2.26.3",
+    "solhint": "6.0.1"
+  },
+  "overrides": {
+    "@graphprotocol/graph-cli": "0.96.0",
+    "@graphprotocol/graph-ts": "0.38.0"
+  },
+  "trustedDependencies": [
+    "keccak",
+    "protobufjs",
+    "secp256k1"
+  ],
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "express": "^4.21.2"
+  },
+  "scripts": {
+    "web": "node web/server.js",
+    "start-web": "node web/server.js"
+  }
+}

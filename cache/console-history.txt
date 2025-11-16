@@ -1,0 +1,15 @@
+await token.transfer(crowdsaleAddress, ethers.parseEther("2500"));
+const [deployer] = await ethers.getSigners();
+const crowdsaleAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
+const token = await ethers.getContractAt("ExampleToken", "0x5FbDB2315678afecb367f032d93F642f64180aa3");
+const { ethers } = require("hardhat");
+const crowdsaleAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
+const token = await ethers.getContractAt("ExampleToken", "0x5FbDB2315678afecb367f032d93F642f64180aa3");
+ethers
+(await token.balanceOf(deployer.address)).toString();
+const [deployer] = await ethers.getSigners();
+const token = await ethers.getContractAt("ExampleToken", "0x5FbDB2315678afecb367f032d93F642f64180aa3");
+const { ethers } = require("hardhat");
+(await token.balanceOf(deployer.address)).toString();
+const [deployer] = await ethers.getSigners();
+const token = await ethers.getContractAt("ExampleToken", "0x5FbDB2315678afecb367f032d93F642f64180aa3");
