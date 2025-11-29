@@ -1,7 +1,6 @@
 // Web3 Integration for Crowdsale Demo
 let provider, signer, tokenContract, crowdsaleContract, vestingVaultContract;
 let isConnected = false;
-let isAdmin = false;
 
 // Contract addresses (updated with latest deployment - FIXED FORMULA)
 const CONTRACT_ADDRESSES = {
@@ -134,9 +133,6 @@ async function updateUI() {
         // Update contract info
         await updateContractInfo();
         
-        // Check admin status
-        await checkAdminStatus();
-        
     } catch (error) {
         console.error('UI update error:', error);
         showStatus('error', 'Failed to update UI: ' + error.message);
@@ -191,36 +187,21 @@ async function updateContractInfo() {
     }
 }
 
-// Check if user is admin
-async function checkAdminStatus() {
-    try {
-        if (crowdsaleContract) {
-            const address = await signer.getAddress();
-            const adminRole = await crowdsaleContract.DEFAULT_ADMIN_ROLE();
-            isAdmin = await crowdsaleContract.hasRole(adminRole, address);
-            
-            // Show/hide admin sections
-            const adminSections = document.querySelectorAll('.admin-section');
-            adminSections.forEach(section => {
-                section.style.display = isAdmin ? 'block' : 'none';
-            });
-        }
-    } catch (error) {
-        console.error('Admin check error:', error);
-    }
-}
-
 // Buy tokens
 async function buyTokens() {
     if (!isConnected || !crowdsaleContract) {
-        showStatus('error', 'Please connect wallet and ensure contracts are deployed');
+        const buyStatus = document.getElementById('buyStatus');
+        buyStatus.className = 'status error';
+        buyStatus.textContent = '❌ Please connect wallet first';
         return;
     }
     
     try {
         const ethAmount = document.getElementById('ethAmount').value;
         if (!ethAmount || ethAmount <= 0) {
-            showStatus('error', 'Please enter a valid ETH amount');
+            const buyStatus = document.getElementById('buyStatus');
+            buyStatus.className = 'status error';
+            buyStatus.textContent = '❌ Please enter a valid ETH amount';
             return;
         }
         
@@ -229,6 +210,7 @@ async function buyTokens() {
         
         buyBtn.disabled = true;
         buyBtn.textContent = 'Processing...';
+        buyStatus.className = 'status info';
         buyStatus.innerHTML = '<div class="loading"></div> Processing transaction...';
         
         const address = await signer.getAddress();
@@ -236,31 +218,41 @@ async function buyTokens() {
             value: ethers.parseEther(ethAmount)
         });
         
-        buyStatus.innerHTML = '<div class="status info">Transaction sent: ' + tx.hash + '</div>';
+        buyStatus.className = 'status info';
+        buyStatus.textContent = '⏳ Transaction sent: ' + tx.hash.substring(0, 20) + '...';
         
         await tx.wait();
         
-        buyStatus.innerHTML = '<div class="status success">✅ Tokens purchased successfully!</div>';
+        buyStatus.className = 'status success';
+        buyStatus.textContent = '✅ Tokens purchased successfully!';
         addTransaction('Token Purchase', ethAmount + ' ETH', tx.hash);
+        
+        // Clear input
+        document.getElementById('ethAmount').value = '';
         
         // Update UI
         await updateUI();
         
     } catch (error) {
         console.error('Buy tokens error:', error);
-        showStatus('error', 'Failed to buy tokens: ' + error.message);
-        document.getElementById('buyStatus').innerHTML = '<div class="status error">❌ Purchase failed</div>';
+        const buyStatus = document.getElementById('buyStatus');
+        buyStatus.className = 'status error';
+        buyStatus.textContent = '❌ Failed to buy tokens: ' + error.message;
     } finally {
         const buyBtn = document.getElementById('buyBtn');
-        buyBtn.disabled = false;
-        buyBtn.textContent = 'Buy Tokens';
+        if (buyBtn) {
+            buyBtn.disabled = false;
+            buyBtn.textContent = 'Purchase Tokens';
+        }
     }
 }
 
 // Transfer tokens
 async function transferTokens() {
     if (!isConnected || !tokenContract) {
-        showStatus('error', 'Please connect your wallet first');
+        const transferStatus = document.getElementById('transferStatus');
+        transferStatus.className = 'status error';
+        transferStatus.textContent = '❌ Please connect your wallet first';
         return;
     }
     
@@ -269,12 +261,16 @@ async function transferTokens() {
         const amount = document.getElementById('transferAmount').value;
         
         if (!recipient || !ethers.isAddress(recipient)) {
-            showStatus('error', 'Please enter a valid recipient address');
+            const transferStatus = document.getElementById('transferStatus');
+            transferStatus.className = 'status error';
+            transferStatus.textContent = '❌ Please enter a valid recipient address';
             return;
         }
         
         if (!amount || amount <= 0) {
-            showStatus('error', 'Please enter a valid token amount');
+            const transferStatus = document.getElementById('transferStatus');
+            transferStatus.className = 'status error';
+            transferStatus.textContent = '❌ Please enter a valid token amount';
             return;
         }
         
@@ -283,15 +279,18 @@ async function transferTokens() {
         
         transferBtn.disabled = true;
         transferBtn.textContent = 'Processing...';
+        transferStatus.className = 'status info';
         transferStatus.innerHTML = '<div class="loading"></div> Processing transfer...';
         
         const tx = await tokenContract.transfer(recipient, ethers.parseEther(amount));
         
-        transferStatus.innerHTML = '<div class="status info">Transaction sent: ' + tx.hash + '</div>';
+        transferStatus.className = 'status info';
+        transferStatus.textContent = '⏳ Transaction sent: ' + tx.hash.substring(0, 20) + '...';
         
         await tx.wait();
         
-        transferStatus.innerHTML = '<div class="status success">✅ Tokens transferred successfully!</div>';
+        transferStatus.className = 'status success';
+        transferStatus.textContent = '✅ Tokens transferred successfully!';
         addTransaction('Token Transfer', amount + ' tokens to ' + recipient.substring(0, 6) + '...', tx.hash);
         
         // Clear inputs
@@ -303,106 +302,15 @@ async function transferTokens() {
         
     } catch (error) {
         console.error('Transfer error:', error);
-        showStatus('error', 'Failed to transfer tokens: ' + error.message);
-        document.getElementById('transferStatus').innerHTML = '<div class="status error">❌ Transfer failed</div>';
+        const transferStatus = document.getElementById('transferStatus');
+        transferStatus.className = 'status error';
+        transferStatus.textContent = '❌ Failed to transfer: ' + error.message;
     } finally {
         const transferBtn = document.getElementById('transferBtn');
-        transferBtn.disabled = false;
-        transferBtn.textContent = 'Send Tokens';
-    }
-}
-
-// Pause crowdsale
-async function pauseCrowdsale() {
-    if (!isAdmin || !crowdsaleContract) {
-        showStatus('error', 'Admin access required');
-        return;
-    }
-    
-    try {
-        const tx = await crowdsaleContract.pause();
-        await tx.wait();
-        showStatus('success', 'Crowdsale paused successfully');
-        addTransaction('Admin Action', 'Paused Crowdsale', tx.hash);
-        await updateUI();
-    } catch (error) {
-        console.error('Pause error:', error);
-        showStatus('error', 'Failed to pause crowdsale: ' + error.message);
-    }
-}
-
-// Unpause crowdsale
-async function unpauseCrowdsale() {
-    if (!isAdmin || !crowdsaleContract) {
-        showStatus('error', 'Admin access required');
-        return;
-    }
-    
-    try {
-        const tx = await crowdsaleContract.unpause();
-        await tx.wait();
-        showStatus('success', 'Crowdsale unpaused successfully');
-        addTransaction('Admin Action', 'Unpaused Crowdsale', tx.hash);
-        await updateUI();
-    } catch (error) {
-        console.error('Unpause error:', error);
-        showStatus('error', 'Failed to unpause crowdsale: ' + error.message);
-    }
-}
-
-// Whitelist user
-async function whitelistUser() {
-    if (!isAdmin || !crowdsaleContract) {
-        showStatus('error', 'Admin access required');
-        return;
-    }
-    
-    try {
-        const address = document.getElementById('whitelistAddress').value;
-        if (!address) {
-            showStatus('error', 'Please enter an address');
-            return;
+        if (transferBtn) {
+            transferBtn.disabled = false;
+            transferBtn.textContent = 'Send Tokens';
         }
-        
-        const whitelistRole = await crowdsaleContract.WHITELISTED_ROLE();
-        const tx = await crowdsaleContract.grantRole(whitelistRole, address);
-        await tx.wait();
-        
-        showStatus('success', 'User whitelisted successfully');
-        addTransaction('Admin Action', 'Whitelisted User', tx.hash);
-        
-    } catch (error) {
-        console.error('Whitelist error:', error);
-        showStatus('error', 'Failed to whitelist user: ' + error.message);
-    }
-}
-
-// External purchase
-async function externalPurchase() {
-    if (!isAdmin || !crowdsaleContract) {
-        showStatus('error', 'Admin access required');
-        return;
-    }
-    
-    try {
-        const beneficiary = document.getElementById('externalAddress').value;
-        const amount = document.getElementById('externalAmount').value;
-        
-        if (!beneficiary || !amount) {
-            showStatus('error', 'Please enter beneficiary address and amount');
-            return;
-        }
-        
-        const tx = await crowdsaleContract.externalBuyTokens(beneficiary, ethers.parseEther(amount));
-        await tx.wait();
-        
-        showStatus('success', 'External purchase processed successfully');
-        addTransaction('External Purchase', amount + ' tokens', tx.hash);
-        await updateUI();
-        
-    } catch (error) {
-        console.error('External purchase error:', error);
-        showStatus('error', 'Failed to process external purchase: ' + error.message);
     }
 }
 
@@ -416,11 +324,19 @@ function showStatus(type, message) {
 // Add transaction to history
 function addTransaction(type, description, hash) {
     const historyDiv = document.getElementById('transactionHistory');
+    
+    // Remove "no transactions" message if it exists
+    const noTransMsg = historyDiv.querySelector('p');
+    if (noTransMsg) {
+        historyDiv.innerHTML = '';
+    }
+    
     const transactionDiv = document.createElement('div');
     transactionDiv.className = 'status info';
+    transactionDiv.style.marginBottom = '10px';
     transactionDiv.innerHTML = `
         <strong>${type}:</strong> ${description}<br>
-        <small>Tx: ${hash}</small>
+        <small>Tx: ${hash.substring(0, 10)}...${hash.substring(hash.length - 8)}</small>
     `;
     historyDiv.insertBefore(transactionDiv, historyDiv.firstChild);
 }

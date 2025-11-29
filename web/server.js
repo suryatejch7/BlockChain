@@ -26,9 +26,9 @@ app.post('/api/contracts', express.json(), (req, res) => {
     res.json({ success: true, message: 'Contract addresses updated' });
 });
 
-// Serve the main page
+// Serve the login page as default
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'login.html'));
 });
 
 // Start server
