@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Token Crowdsale</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.1/dist/ethers.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Login Modal */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-modal {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .login-modal h2 {
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2em;
+        }
+
+        .login-modal p {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .login-modal .shield-icon {
+            text-align: center;
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            display: none;
+            text-align: center;
+        }
+
+        /* Main Admin Panel */
+        .admin-panel {
+            display: none;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 10px 25px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: white;
+            color: #4facfe;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 10px 25px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .back-btn:hover {
+            background: white;
+            color: #4facfe;
+        }
+
+        .status-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .status-card {
+            text-align: center;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .status-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .status-card .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .admin-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .admin-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .action-card {
+            background: linear-gradient(135deg, #f9f9f9 0%, #ffffff 100%);
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .action-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .action-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, #ee5a6f 0%, #f29263 100%);
+        }
+
+        button.danger:hover {
+            box-shadow: 0 5px 15px rgba(238, 90, 111, 0.4);
+        }
+
+        button.success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+        }
+
+        button.success:hover {
+            box-shadow: 0 5px 15px rgba(86, 171, 47, 0.4);
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .status-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #bee5eb;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .transaction-log {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .transaction-item strong {
+            color: #667eea;
+        }
+
+        .transaction-item small {
+            color: #666;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Modal -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-modal">
+            <div class="shield-icon">🔐</div>
+            <h2>Admin Access</h2>
+            <p>Enter password to access admin panel</p>
+            <div class="form-group">
+                <label for="adminPassword">Password</label>
+                <input type="password" id="adminPassword" placeholder="Enter admin password" autofocus>
+            </div>
+            <button class="login-btn" onclick="verifyPassword()">Access Admin Panel</button>
+            <div id="loginError" class="error-message">Incorrect password. Please try again.</div>
+        </div>
+    </div>
+
+    <!-- Main Admin Panel -->
+    <div id="adminPanel" class="admin-panel container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div>
+                    <h1>⚙️ Admin Control Panel</h1>
+                    <p>Token Crowdsale Management</p>
+                </div>
+                <div>
+                    <a href="index.html" class="back-btn">← Back to Main</a>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-grid">
+                <div class="status-card">
+                    <h3>Wallet Address</h3>
+                    <div class="value" id="adminAddress">Not Connected</div>
+                </div>
+                <div class="status-card">
+                    <h3>Admin Status</h3>
+                    <div class="value" id="adminStatus">Checking...</div>
+                </div>
+                <div class="status-card">
+                    <h3>Crowdsale Status</h3>
+                    <div class="value" id="crowdsaleStatus">-</div>
+                </div>
+                <div class="status-card">
+                    <h3>Total Funds Raised</h3>
+                    <div class="value" id="fundsRaised">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crowdsale Control -->
+        <div class="admin-section">
+            <h2>🎛️ Crowdsale Control</h2>
+            <div class="section-grid">
+                <div class="action-card">
+                    <h3>Pause Crowdsale</h3>
+                    <p style="color: #666; margin-bottom: 15px;">Temporarily halt all token purchases</p>
+                    <button class="danger" onclick="pauseCrowdsale()">⏸ Pause Crowdsale</button>
+                    <div id="pauseStatus" class="status-message"></div>
+                </div>
+                <div class="action-card">
+                    <h3>Unpause Crowdsale</h3>
+                    <p style="color: #666; margin-bottom: 15px;">Resume token purchase operations</p>
+                    <button class="success" onclick="unpauseCrowdsale()">▶ Unpause Crowdsale</button>
+                    <div id="unpauseStatus" class="status-message"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Whitelist Management -->
+        <div class="admin-section">
+            <h2>👥 Whitelist Management</h2>
+            <div class="section-grid">
+                <div class="action-card">
+                    <h3>Add Address to Whitelist</h3>
+                    <div class="form-group">
+                        <label for="whitelistAddress">Ethereum Address</label>
+                        <input type="text" id="whitelistAddress" placeholder="0x...">
+                    </div>
+                    <button onclick="whitelistUser()">✅ Add to Whitelist</button>
+                    <div id="whitelistStatus" class="status-message"></div>
+                </div>
+                <div class="action-card">
+                    <h3>Batch Whitelist</h3>
+                    <p style="color: #666; margin-bottom: 15px;">Add multiple addresses (one per line)</p>
+                    <textarea id="batchWhitelist" placeholder="0x123...&#10;0x456...&#10;0x789..." style="min-height: 100px; resize: vertical;"></textarea>
+                    <button onclick="batchWhitelist()">✅ Batch Add</button>
+                    <div id="batchStatus" class="status-message"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- External Purchase -->
+        <div class="admin-section">
+            <h2>💳 External Purchase Management</h2>
+            <div class="section-grid">
+                <div class="action-card">
+                    <h3>Process External Purchase</h3>
+                    <p style="color: #666; margin-bottom: 15px;">Allocate tokens for off-chain purchases</p>
+                    <div class="form-group">
+                        <label for="externalAddress">Beneficiary Address</label>
+                        <input type="text" id="externalAddress" placeholder="0x...">
+                    </div>
+                    <div class="form-group">
+                        <label for="externalAmount">Token Amount</label>
+                        <input type="number" id="externalAmount" placeholder="1000" step="1" min="0">
+                    </div>
+                    <button onclick="externalPurchase()">💰 Process Purchase</button>
+                    <div id="externalStatus" class="status-message"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Log -->
+        <div class="admin-section">
+            <h2>📜 Admin Transaction Log</h2>
+            <div class="transaction-log" id="transactionLog">
+                <p style="color: #666; text-align: center;">No admin transactions yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

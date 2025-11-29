@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoLaunch - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: 40px 0;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 215, 0, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1200px;
+            padding: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .login-box {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 2px solid #ffd700;
+            border-radius: 20px;
+            padding: 60px 50px;
+            box-shadow: 
+                0 0 50px rgba(255, 215, 0, 0.2),
+                0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        .welcome-section {
+            animation: slideIn 0.6s ease-out;
+        }
+        
+        .welcome-section h2 {
+            font-size: 3.5em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .welcome-section p {
+            font-size: 1.3em;
+            color: #a0a0a0;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        
+        .features {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-item:hover {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: rgba(255, 215, 0, 0.4);
+            transform: translateX(10px);
+        }
+        
+        .feature-item .icon {
+            font-size: 2em;
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+        }
+        
+        .feature-item .text h3 {
+            color: #ffd700;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+        
+        .feature-item .text p {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+            20%, 40%, 60%, 80% { transform: translateX(10px); }
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .logo h1 {
+            font-size: 2.5em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .logo p {
+            color: #999;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            color: #ffd700;
+            font-weight: 600;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 18px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1.05em;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #ffd700;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+
+        .form-group input::placeholder {
+            color: #666;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid #dc3545;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            color: #ff6b6b;
+            font-size: 14px;
+            display: none;
+            text-align: center;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 215, 0, 0.2);
+        }
+
+        .divider span {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 0 15px;
+            position: relative;
+            color: #999;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-box {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .info-box h3 {
+            color: #ffd700;
+            font-size: 14px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .credentials {
+            font-size: 13px;
+            line-height: 1.8;
+            color: #ccc;
+        }
+
+        .credentials strong {
+            color: #ffd700;
+        }
+
+        .credentials div {
+            margin: 8px 0;
+        }
+
+        @media (max-width: 1024px) {
+            .login-container {
+                grid-template-columns: 1fr;
+                max-width: 600px;
+                gap: 40px;
+            }
+            
+            .welcome-section {
+                order: 2;
+                text-align: center;
+            }
+            
+            .welcome-section h2 {
+                font-size: 2.5em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 20px;
+            }
+            
+            .login-box {
+                padding: 40px 30px;
+            }
+
+            .logo h1 {
+                font-size: 2em;
+            }
+            
+            .welcome-section h2 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="welcome-section">
+            <h2>Welcome to CryptoLaunch</h2>
+            <p>The most advanced token distribution platform powered by blockchain technology. Secure, transparent, and efficient token crowdsale management.</p>
+            
+            <div class="features">
+                <div class="feature-item">
+                    <div class="icon">🔒</div>
+                    <div class="text">
+                        <h3>Secure Transactions</h3>
+                        <p>Bank-level security with blockchain verification</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="icon">⚡</div>
+                    <div class="text">
+                        <h3>Instant Processing</h3>
+                        <p>Real-time token distribution and transfers</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="icon">📊</div>
+                    <div class="text">
+                        <h3>Complete Control</h3>
+                        <p>Full admin panel for crowdsale management</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="icon">🌐</div>
+                    <div class="text">
+                        <h3>MetaMask Integration</h3>
+                        <p>Seamless wallet connectivity</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="login-box">
+            <div class="logo">
+                <h1>🚀 CryptoLaunch</h1>
+                <p>Token Crowdsale Platform</p>
+            </div>
+
+            <div id="errorMessage" class="error-message"></div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        placeholder="Enter your email"
+                        required
+                        autocomplete="email"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        placeholder="Enter your password"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+
+            <div class="divider">
+                <span>Demo Credentials</span>
+            </div>
+
+            <div class="info-box">
+                <h3>👤 User Access</h3>
+                <div class="credentials">
+                    <div><strong>Email:</strong> user@cryptolaunch.com</div>
+                    <div><strong>Password:</strong> user123</div>
+                </div>
+            </div>
+
+            <div class="info-box" style="margin-top: 15px;">
+                <h3>🔐 Admin Access</h3>
+                <div class="credentials">
+                    <div><strong>Email:</strong> admin@cryptolaunch.com</div>
+                    <div><strong>Password:</strong> admin123</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // User credentials
+        const USER_CREDENTIALS = {
+            email: 'user@cryptolaunch.com',
+            password: 'user123'
+        };
+
+        // Admin credentials
+        const ADMIN_CREDENTIALS = {
+            email: 'admin@cryptolaunch.com',
+            password: 'admin123'
+        };
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = '❌ ' + message;
+            errorDiv.classList.add('show');
+            
+            // Add shake animation to the login box
+            const loginBox = document.querySelector('.login-box');
+            loginBox.classList.add('shake');
+            setTimeout(() => {
+                loginBox.classList.remove('shake');
+            }, 500);
+
+            // Hide error after 3 seconds
+            setTimeout(() => {
+                errorDiv.classList.remove('show');
+            }, 3000);
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            // Check admin credentials
+            if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+                // Store session
+                sessionStorage.setItem('userRole', 'admin');
+                sessionStorage.setItem('userEmail', email);
+                sessionStorage.setItem('isLoggedIn', 'true');
+                
+                // Redirect to admin page
+                window.location.href = 'admin.html';
+                return;
+            }
+
+            // Check user credentials
+            if (email === USER_CREDENTIALS.email && password === USER_CREDENTIALS.password) {
+                // Store session
+                sessionStorage.setItem('userRole', 'user');
+                sessionStorage.setItem('userEmail', email);
+                sessionStorage.setItem('isLoggedIn', 'true');
+                
+                // Redirect to user page
+                window.location.href = 'user.html';
+                return;
+            }
+
+            // Invalid credentials
+            showError('Invalid email or password. Please try again.');
+            document.getElementById('password').value = '';
+        }
+
+        // Clear any existing sessions on load
+        window.addEventListener('load', () => {
+            sessionStorage.clear();
+        });
+    </script>
+</body>
+</html>
