@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERC-20 Token & Crowdsale Demo</title>
+    <title>CryptoLaunch - Token Crowdsale Platform</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.1/dist/ethers.umd.min.js"></script>
     <style>
         * {
@@ -13,40 +13,87 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
             min-height: 100vh;
-            padding: 20px;
+            color: #ffffff;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 215, 0, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 215, 0, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 215, 0, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
         }
 
+        /* Header */
         .header {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            padding: 30px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 2px solid #ffd700;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(255, 215, 0, 0.2);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
             text-align: center;
         }
 
         .header h1 {
-            font-size: 2.5em;
+            font-size: 3em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
         }
 
         .header p {
             font-size: 1.2em;
-            opacity: 0.9;
-        }
-
-        .content {
-            padding: 30px;
+            color: #a0a0a0;
+            font-weight: 500;
         }
 
         .section {
@@ -173,9 +220,39 @@
             background: #d1ecf1;
             border: 1px solid #bee5eb;
         }
+
+        .admin-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ee5a6f 0%, #f29263 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(238, 90, 111, 0.4);
+            transition: all 0.3s;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(238, 90, 111, 0.6);
+        }
     </style>
 </head>
 <body>
+    <!-- Admin Button -->
+    <a href="admin.html" class="admin-button">
+        ⚙️ Admin Panel
+    </a>
+
     <div class="container">
         <div class="header">
             <h1>🚀 ERC-20 Token & Crowdsale Demo</h1>
@@ -241,38 +318,6 @@
                         </div>
                         <button onclick="transferTokens()" id="transferBtn">Send Tokens</button>
                         <div id="transferStatus"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Admin Actions -->
-            <div class="section admin-section">
-                <h2>⚙️ Admin Actions</h2>
-                <div class="grid">
-                    <div class="card">
-                        <h3>Crowdsale Control</h3>
-                        <button onclick="pauseCrowdsale()" id="pauseBtn">Pause Crowdsale</button>
-                        <button onclick="unpauseCrowdsale()" id="unpauseBtn">Unpause Crowdsale</button>
-                    </div>
-                    <div class="card">
-                        <h3>Whitelist Management</h3>
-                        <div class="form-group">
-                            <label for="whitelistAddress">Address to Whitelist:</label>
-                            <input type="text" id="whitelistAddress" placeholder="0x...">
-                        </div>
-                        <button onclick="whitelistUser()">Add to Whitelist</button>
-                    </div>
-                    <div class="card">
-                        <h3>External Purchase</h3>
-                        <div class="form-group">
-                            <label for="externalAddress">Beneficiary Address:</label>
-                            <input type="text" id="externalAddress" placeholder="0x...">
-                        </div>
-                        <div class="form-group">
-                            <label for="externalAmount">Token Amount:</label>
-                            <input type="number" id="externalAmount" placeholder="1000" step="1" min="0">
-                        </div>
-                        <button onclick="externalPurchase()">Process External Purchase</button>
                     </div>
                 </div>
             </div>

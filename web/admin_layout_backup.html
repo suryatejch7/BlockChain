@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoLaunch Admin - Control Panel</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.1/dist/ethers.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            color: #ffffff;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 215, 0, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Login Modal */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-modal {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 2px solid #ffd700;
+            padding: 50px;
+            border-radius: 25px;
+            box-shadow: 0 30px 80px rgba(255, 215, 0, 0.3);
+            max-width: 450px;
+            width: 90%;
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px) scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .login-modal .shield-icon {
+            text-align: center;
+            font-size: 5em;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+        }
+
+        .login-modal h2 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-modal p {
+            text-align: center;
+            color: #a0a0a0;
+            margin-bottom: 35px;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: #ffd700;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 18px;
+            border: 2px solid #333;
+            border-radius: 12px;
+            font-size: 17px;
+            background: #0a0a0a;
+            color: #ffffff;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.3);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #0a0a0a;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 35px rgba(255, 215, 0, 0.5);
+        }
+
+        .error-message {
+            background: rgba(255, 0, 0, 0.15);
+            color: #ff4444;
+            border: 2px solid #ff4444;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Main Admin Panel */
+        .admin-panel {
+            display: none;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 2px solid #ffd700;
+            border-radius: 25px;
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(255, 215, 0, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #a0a0a0;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .logout-btn, .back-btn {
+            background: rgba(255, 215, 0, 0.1);
+            color: #ffd700;
+            border: 2px solid #ffd700;
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .logout-btn:hover, .back-btn:hover {
+            background: #ffd700;
+            color: #0a0a0a;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .status-bar {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 1px solid #333;
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .status-card {
+            text-align: center;
+            padding: 20px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 15px;
+            transition: all 0.3s;
+        }
+
+        .status-card:hover {
+            border-color: #ffd700;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.2);
+        }
+
+        .status-card h3 {
+            color: #a0a0a0;
+            font-size: 0.85em;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+
+        .status-card .value {
+            font-size: 1.6em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .admin-section {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 1px solid #333;
+            padding: 35px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s;
+        }
+
+        .admin-section:hover {
+            border-color: #ffd700;
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.2);
+        }
+
+        .admin-section h2 {
+            color: #ffd700;
+            margin-bottom: 30px;
+            font-size: 1.9em;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .action-card {
+            background: #0a0a0a;
+            padding: 30px;
+            border-radius: 18px;
+            border: 1px solid #333;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #ffd700, transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .action-card:hover {
+            border-color: #ffd700;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 35px rgba(255, 215, 0, 0.25);
+        }
+
+        .action-card:hover::before {
+            opacity: 1;
+        }
+
+        .action-card h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-size: 1.4em;
+            font-weight: 800;
+        }
+
+        .action-card p {
+            color: #777;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #333;
+            border-radius: 12px;
+            font-size: 15px;
+            background: #0a0a0a;
+            color: #ffffff;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #0a0a0a;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+        }
+
+        button:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, #ff4444 0%, #ff6b6b 100%);
+            color: #ffffff;
+        }
+
+        button.danger:hover {
+            box-shadow: 0 10px 30px rgba(255, 68, 68, 0.4);
+        }
+
+        button.success {
+            background: linear-gradient(135deg, #00ff00 0%, #00cc00 100%);
+            color: #0a0a0a;
+        }
+
+        button.success:hover {
+            box-shadow: 0 10px 30px rgba(0, 255, 0, 0.4);
+        }
+
+        .status-message {
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 18px;
+            font-weight: 600;
+            display: none;
+            border-left: 4px solid;
+        }
+
+        .status-message.success {
+            background: rgba(0, 255, 0, 0.1);
+            color: #00ff00;
+            border-left-color: #00ff00;
+        }
+
+        .status-message.error {
+            background: rgba(255, 0, 0, 0.1);
+            color: #ff4444;
+            border-left-color: #ff4444;
+        }
+
+        .status-message.info {
+            background: rgba(255, 215, 0, 0.1);
+            color: #ffd700;
+            border-left-color: #ffd700;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #333;
+            border-top: 3px solid #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .transaction-log {
+            background: #0a0a0a;
+            padding: 20px;
+            border-radius: 15px;
+            max-height: 450px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+
+        .transaction-log::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .transaction-log::-webkit-scrollbar-track {
+            background: #1a1a1a;
+            border-radius: 10px;
+        }
+
+        .transaction-log::-webkit-scrollbar-thumb {
+            background: #ffd700;
+            border-radius: 10px;
+        }
+
+        .transaction-item {
+            background: #1a1a1a;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #ffd700;
+            transition: all 0.3s;
+        }
+
+        .transaction-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.2);
+        }
+
+        .transaction-item strong {
+            color: #ffd700;
+            font-weight: 800;
+        }
+
+        .transaction-item small {
+            color: #777;
+            display: block;
+            margin-top: 8px;
+            font-size: 0.85em;
+        }
+
+        @media (max-width: 968px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .section-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .status-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Modal -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-modal">
+            <div class="shield-icon">🔐</div>
+            <h2>ADMIN ACCESS</h2>
+            <p>Enter password to access control panel</p>
+            <div class="form-group">
+                <label for="adminPassword">Password</label>
+                <input type="password" id="adminPassword" placeholder="Enter admin password" autofocus>
+            </div>
+            <button class="login-btn" onclick="verifyPassword()">Access Panel</button>
+            <div id="loginError" class="error-message">Incorrect password. Please try again.</div>
+        </div>
+    </div>
+
+    <!-- Main Admin Panel -->
+    <div id="adminPanel" class="admin-panel container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div>
+                    <h1>⚙️ ADMIN CONTROL</h1>
+                    <p>Token Crowdsale Management System</p>
+                </div>
+                <div class="header-buttons">
+                    <a href="index.html" class="back-btn">← Back</a>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-grid">
+                <div class="status-card">
+                    <h3>Wallet Address</h3>
+                    <div class="value" id="adminAddress">Not Connected</div>
+                </div>
+                <div class="status-card">
+                    <h3>Admin Status</h3>
+                    <div class="value" id="adminStatus">Checking...</div>
+                </div>
+                <div class="status-card">
+                    <h3>Crowdsale Status</h3>
+                    <div class="value" id="crowdsaleStatus">-</div>
+                </div>
+                <div class="status-card">
+                    <h3>Total Funds Raised</h3>
+                    <div class="value" id="fundsRaised">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crowdsale Control -->
+        <div class="admin-section">
+            <h2>🎛️ Crowdsale Control</h2>
+            <div class="section-grid">
+                <div class="action-card">
+                    <h3>Pause Crowdsale</h3>
+                    <p>Temporarily halt all token purchases</p>
+                    <button class="danger" onclick="pauseCrowdsale()">⏸ Pause Crowdsale</button>
+                    <div id="pauseStatus" class="status-message"></div>
+                </div>
+                <div class="action-card">
+                    <h3>Unpause Crowdsale</h3>
+                    <p>Resume token purchase operations</p>
+                    <button class="success" onclick="unpauseCrowdsale()">▶ Unpause Crowdsale</button>
+                    <div id="unpauseStatus" class="status-message"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Whitelist Management -->
+        <div class="admin-section">
+            <h2>👥 Whitelist Management</h2>
+            <div class="section-grid">
+                <div class="action-card">
+                    <h3>Add Address to Whitelist</h3>
+                    <p>Grant purchase permission to an address</p>
+                    <div class="form-group">
+                        <label for="whitelistAddress">Ethereum Address</label>
+                        <input type="text" id="whitelistAddress" placeholder="0x...">
+                    </div>
+                    <button onclick="whitelistUser()">✅ Add to Whitelist</button>
+                    <div id="whitelistStatus" class="status-message"></div>
+                </div>
+                <div class="action-card">
+                    <h3>Batch Whitelist</h3>
+                    <p>Add multiple addresses (one per line)</p>
+                    <textarea id="batchWhitelist" placeholder="0x123...&#10;0x456...&#10;0x789..."></textarea>
+                    <button onclick="batchWhitelist()">✅ Batch Add</button>
+                    <div id="batchStatus" class="status-message"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- External Purchase -->
+        <div class="admin-section">
+            <h2>💳 External Purchase</h2>
+            <div class="section-grid">
+                <div class="action-card">
+                    <h3>Process External Purchase</h3>
+                    <p>Allocate tokens for off-chain purchases</p>
+                    <div class="form-group">
+                        <label for="externalAddress">Beneficiary Address</label>
+                        <input type="text" id="externalAddress" placeholder="0x...">
+                    </div>
+                    <div class="form-group">
+                        <label for="externalAmount">Token Amount</label>
+                        <input type="number" id="externalAmount" placeholder="1000" step="1" min="0">
+                    </div>
+                    <button onclick="externalPurchase()">💰 Process Purchase</button>
+                    <div id="externalStatus" class="status-message"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Log -->
+        <div class="admin-section">
+            <h2>📜 Transaction Log</h2>
+            <div class="transaction-log" id="transactionLog">
+                <p style="color: #666; text-align: center;">No admin transactions yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
