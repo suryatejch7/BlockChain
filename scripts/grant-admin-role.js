@@ -13,7 +13,7 @@ async function main() {
         process.exit(1);
     }
     
-    const crowdsaleAddress = "0x9A676e781A523b5d0C0e43731313A708CB607508";
+    const crowdsaleAddress = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707";
     
     console.log("\n════════════════════════════════════════════════════════");
     console.log("  Granting Admin Role");

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Cache & Reset</title>
+</head>
+<body>
+    <h1>Clearing Browser Cache...</h1>
+    <script>
+        // Clear all localStorage
+        localStorage.clear();
+        
+        // Set correct contract addresses
+        const correctAddresses = {
+            token: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+            crowdsale: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+            vestingVault: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
+        };
+        
+        localStorage.setItem('contractAddresses', JSON.stringify(correctAddresses));
+        
+        console.log("✅ Cache cleared and addresses updated!");
+        console.log("Contract Addresses:", correctAddresses);
+        
+        alert("Cache cleared! Click OK to go to main page.");
+        window.location.href = '/';
+    </script>
+</body>
+</html>

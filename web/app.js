@@ -4,9 +4,9 @@ let isConnected = false;
 
 // Contract addresses (updated with latest deployment - FIXED FORMULA)
 const CONTRACT_ADDRESSES = {
-    token: "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
-    crowdsale: "0x9A676e781A523b5d0C0e43731313A708CB607508",
-    vestingVault: "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"
+    token: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    crowdsale: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+    vestingVault: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
 };
 
 // ABI for contracts (complete)
@@ -93,31 +93,33 @@ async function connectWallet() {
 
 // Load contract addresses
 function loadContractAddresses() {
-    const saved = localStorage.getItem('contractAddresses');
-    if (saved) {
-        const addresses = JSON.parse(saved);
-        CONTRACT_ADDRESSES.token = addresses.token;
-        CONTRACT_ADDRESSES.crowdsale = addresses.crowdsale;
-        CONTRACT_ADDRESSES.vestingVault = addresses.vestingVault;
-    }
-    // CONTRACT_ADDRESSES already has the correct defaults from the top of the file
-    // No need to override with old addresses
+    // ALWAYS use the hardcoded addresses from the file
+    // Don't load from localStorage to avoid stale addresses
+    console.log("📍 Using contract addresses:", CONTRACT_ADDRESSES);
+    
+    // Save current addresses to localStorage for reference
+    localStorage.setItem('contractAddresses', JSON.stringify(CONTRACT_ADDRESSES));
 }
 
 // Initialize contracts
 async function initializeContracts() {
     try {
+        console.log("🔗 Initializing contracts with addresses:", CONTRACT_ADDRESSES);
+        
         if (CONTRACT_ADDRESSES.token) {
             tokenContract = new ethers.Contract(CONTRACT_ADDRESSES.token, TOKEN_ABI, signer);
+            console.log("✅ Token contract initialized");
         }
         if (CONTRACT_ADDRESSES.crowdsale) {
             crowdsaleContract = new ethers.Contract(CONTRACT_ADDRESSES.crowdsale, CROWDSALE_ABI, signer);
+            console.log("✅ Crowdsale contract initialized");
         }
         if (CONTRACT_ADDRESSES.vestingVault) {
             vestingVaultContract = new ethers.Contract(CONTRACT_ADDRESSES.vestingVault, VESTING_VAULT_ABI, signer);
+            console.log("✅ Vesting vault contract initialized");
         }
     } catch (error) {
-        console.error('Contract initialization error:', error);
+        console.error('❌ Contract initialization error:', error);
         showStatus('error', 'Failed to initialize contracts: ' + error.message);
     }
 }
@@ -143,19 +145,22 @@ async function updateUI() {
 async function updateBalances() {
     try {
         const address = await signer.getAddress();
+        console.log("💰 Updating balances for:", address);
         
         // ETH balance
         const ethBalance = await provider.getBalance(address);
+        console.log("ETH Balance:", ethers.formatEther(ethBalance));
         document.getElementById('ethBalance').textContent = ethers.formatEther(ethBalance) + ' ETH';
         
         // Token balance
         if (tokenContract) {
             const tokenBalance = await tokenContract.balanceOf(address);
+            console.log("Token Balance:", ethers.formatEther(tokenBalance));
             document.getElementById('tokenBalance').textContent = ethers.formatEther(tokenBalance) + ' ATK';
         }
         
     } catch (error) {
-        console.error('Balance update error:', error);
+        console.error('❌ Balance update error:', error);
     }
 }
 

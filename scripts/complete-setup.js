@@ -7,9 +7,9 @@ async function main() {
   console.log("Deployer:", deployer.account.address);
 
   // NEW contract addresses from latest deployment
-  const tokenAddress = "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318";
-  const crowdsaleAddress = "0x9A676e781A523b5d0C0e43731313A708CB607508";
-  const vestingVaultAddress = "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0";
+  const tokenAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+  const crowdsaleAddress = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707";
+  const vestingVaultAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
   
   // Get contract instances
   const token = await hre.viem.getContractAt("ExampleToken", tokenAddress);
